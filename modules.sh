@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# modules
+
+module load LUMI/22.08 partition/C
+module load PrgEnv-gnu/8.4.0
+
+module load cray-mpich/8.1.27
+module load cray-hdf5/1.12.2.1
+
+module load cray-netcdf/4.9.0.3
+
+# cleanup
