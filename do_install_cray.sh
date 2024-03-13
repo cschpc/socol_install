@@ -4,10 +4,10 @@
 # modules
 
 if [ "1" ]; then
-  source artefacts/modules_gnu
+  source artefacts/modules_cray
 fi
 
-GERACLIS_ROOT=/project/project_462000470/socol/gnu
+GERACLIS_ROOT=/project/project_462000470/socol/cray
 SOCOL_SRC=$GERACLIS_ROOT/SOCOLv4.0-testing
 # YAXT_SRC="..."
 # CDI_SRC=
@@ -33,15 +33,15 @@ fi
 popd
 
 # Copy modified configs
-if test -f "$SOCOL_SRC/configure_socol_lumi"; then
+if test -f "$SOCOL_SRC/configure_socol_lumi_cray"; then
   echo "\n********************************************************\n"
-  echo "$SOCOL_SRC/configure_socol_lumi exists, overwrite? (y/N)"
+  echo "$SOCOL_SRC/configure_socol_lumi_cray exists, overwrite? (y/N)"
   read yesNO
   if [ "${yesNO}" = "y" ]; then
-    cp artefacts/configure_socol_lumi $SOCOL_SRC/
+    cp artefacts/configure_socol_lumi_cray $SOCOL_SRC/
   fi
 else
-  cp artefacts/configure_socol_lumi $SOCOL_SRC/
+  cp artefacts/configure_socol_lumi_cray $SOCOL_SRC/
 fi
 
 echo "Copying configure.ac $SOCOL_SRC/src/oasis3mct/configure.ac"
@@ -50,7 +50,7 @@ pushd $SOCOL_SRC/src/oasis3mct/ && autoconf
 popd
 
 # Configure SOCOL
-pushd $SOCOL_SRC && GERACLIS_ROOT=$GERACLIS_ROOT ./configure_socol_lumi --oasis --echam --mpiom --prefix=$SOCOL_SRC
+pushd $SOCOL_SRC && GERACLIS_ROOT=$GERACLIS_ROOT ./configure_socol_lumi_cray --oasis --echam --mpiom --prefix=$SOCOL_SRC
 
 # Make oasis
 cd $SOCOL_SRC/src/oasis3mct && make -j2 install
