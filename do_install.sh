@@ -58,3 +58,6 @@ cd $SOCOL_SRC/src/oasis3mct && make -j2 install
 # Make SOCOL
 cd $SOCOL_SRC && make -j12 install
 popd
+
+mkdir -p $GERACLIS_ROOT/modulefiles/socol
+cp artefacts/modulefiles/socol/${BUILDNAME}.lua $GERACLIS_ROOT/modulefiles/socol/

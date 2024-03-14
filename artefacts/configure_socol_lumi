@@ -289,7 +289,7 @@ ENVIRONMENT=
 typeset -a site_extras=
 
 
-	ENVIRONMENT=csc_sisu
+	ENVIRONMENT=lumi
 
 	set +u
 	source $MODULESHOME/init/bash
@@ -304,26 +304,6 @@ typeset -a site_extras=
 	SUPPORT_LIB='-L$(SUPPORTROOT)/lib -lsupport'
 	ARFLAGS=crv
 
-	case $compiler in
-
-	intel)            
-	switchForModule PrgEnv-gnu
-	switchForModule craype-sandybridge
-	switchForModule cray-mpich/8.1.23
-	switchForModule cray-netcdf/4.9.0.3
-	switchForModule cray-hdf5/1.12.2.1
-	PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PE_INTEL_FIXED_PKGCONFIG_PATH
-	;;
-    esac
-
-	# module load LUMI/22.08 partition/C
-	# module load PrgEnv-gnu/8.4.0
-
-	# module load cray-mpich/8.1.27
-	# module load cray-hdf5/1.12.2.1
-
-	# module load cray-netcdf/4.9.0.3
-  
   module load socol/${BUILDNAME}
 
 	MPIROOT=${MPICH_DIR}
