@@ -360,9 +360,7 @@ YAXTROOT=$SOCOL_ROOT/usr
 
   site_extras=(NETCDFF_VERSION="$NETCDFF_VERSION" NETCDFF_INCLUDE="$NETCDFF_INCLUDE" NETCDFF_LIB="$NETCDFF_LIB")
   site_extras+=(NETCDF_VERSION="$NETCDF_VERSION" NETCDF_INCLUDE="$NETCDF_INCLUDE" NETCDF_LIB="$NETCDF_LIB")
-  ;;
 
-esac # sisu-*|uan*)
 #_______________________________________________________________________________
 #
 #                            End of Customization
