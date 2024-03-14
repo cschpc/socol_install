@@ -50,7 +50,7 @@ pushd $SOCOL_SRC/src/oasis3mct/ && autoconf
 popd
 
 # Configure SOCOL
-pushd $SOCOL_SRC && SOCOL_ROOT=$SOCOL_ROOT ./$CONFNAME --oasis --echam --mpiom --prefix=$SOCOL_SRC
+pushd $SOCOL_SRC && BUILDNAME=$BUILDNAME SOCOL_ROOT=$SOCOL_ROOT ./$CONFNAME --oasis --echam --mpiom --prefix=$SOCOL_SRC
 
 # Make oasis
 cd $SOCOL_SRC/src/oasis3mct && make -j2 install

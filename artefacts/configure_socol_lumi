@@ -289,80 +289,80 @@ ENVIRONMENT=
 typeset -a site_extras=
 
 
-	ENVIRONMENT=lumi
+ENVIRONMENT=lumi
 
-	set +u
-	source $MODULESHOME/init/bash
-	set -u
+set +u
+source $MODULESHOME/init/bash
+set -u
 
-	compiler=$configCompiler
+compiler=$configCompiler
 
-	SRCDIRS="support blas lapack"
-	LAPACKROOT=
-	LAPACK_LIB=
-	SUPPORTROOT=..
-	SUPPORT_LIB='-L$(SUPPORTROOT)/lib -lsupport'
-	ARFLAGS=crv
+SRCDIRS="support blas lapack"
+LAPACKROOT=
+LAPACK_LIB=
+SUPPORTROOT=..
+SUPPORT_LIB='-L$(SUPPORTROOT)/lib -lsupport'
+ARFLAGS=crv
 
-  module load socol/${BUILDNAME}
+module load socol/${BUILDNAME}
 
-	MPIROOT=${MPICH_DIR}
+MPIROOT=${MPICH_DIR}
 
-    prefix_string="netcdf_prefix"
-	NETCDFROOT=$(pkg-config --variable=${prefix_string} netcdf)	
-	NETCDF_VERSION=$(pkg-config --modversion netcdf)
-	NETCDF_INCLUDE=$(pkg-config --cflags netcdf)
-	NETCDF_LIB=$(pkg-config --libs netcdf)
-	echo $NETCDFROOT
+prefix_string="netcdf_prefix"
+  NETCDFROOT=$(pkg-config --variable=${prefix_string} netcdf)	
+  NETCDF_VERSION=$(pkg-config --modversion netcdf)
+  NETCDF_INCLUDE=$(pkg-config --cflags netcdf)
+  NETCDF_LIB=$(pkg-config --libs netcdf)
+  echo $NETCDFROOT
 
-	NETCDFFROOT=$(pkg-config --variable=${prefix_string} netcdf-fortran)
-	NETCDFF_VERSION=$(pkg-config --modversion netcdf-fortran)
-	NETCDFF_INCLUDE=$(pkg-config --cflags netcdf-fortran)
-	NETCDFF_LIB=$(pkg-config --libs netcdf-fortran)
+  NETCDFFROOT=$(pkg-config --variable=${prefix_string} netcdf-fortran)
+  NETCDFF_VERSION=$(pkg-config --modversion netcdf-fortran)
+  NETCDFF_INCLUDE=$(pkg-config --cflags netcdf-fortran)
+  NETCDFF_LIB=$(pkg-config --libs netcdf-fortran)
 
-	prefix_string=$(pkg-config --print-variables hdf5 | awk '$1 ~ /prefix/ { print }')
-	HDF5ROOT=$(pkg-config --variable=${prefix_string} hdf5)
-	HDF5_VERSION=$(pkg-config --modversion hdf5)
-	HDF5_INCLUDE=$(pkg-config --cflags hdf5)
-	HDF5_LIB=$(pkg-config --libs hdf5)
+  prefix_string=$(pkg-config --print-variables hdf5 | awk '$1 ~ /prefix/ { print }')
+  HDF5ROOT=$(pkg-config --variable=${prefix_string} hdf5)
+  HDF5_VERSION=$(pkg-config --modversion hdf5)
+  HDF5_INCLUDE=$(pkg-config --cflags hdf5)
+  HDF5_LIB=$(pkg-config --libs hdf5)
 
-	SOCOL_ROOT=${SOCOL_ROOT:-$HOME/workspace/geraclis}
+  SOCOL_ROOT=${SOCOL_ROOT:-$HOME/workspace/geraclis}
 
-	YAXTROOT=$SOCOL_ROOT/usr
-	CDIROOT=$SOCOL_ROOT/usr
+YAXTROOT=$SOCOL_ROOT/usr
+  CDIROOT=$SOCOL_ROOT/usr
 
-	CDO=$SOCOL_ROOT/usr/bin/cdo
+  CDO=$SOCOL_ROOT/usr/bin/cdo
 
-	echo $CDO
+  echo $CDO
 
-	CC=cc
-	CXX=CC
-	FC=ftn
-	F77=ftn
-	F90=ftn
-	MPIFC=ftn
-	MPICC=cc
-	MPICXX=CC
+  CC=cc
+  CXX=CC
+  FC=ftn
+  F77=ftn
+  F90=ftn
+  MPIFC=ftn
+  MPICC=cc
+  MPICXX=CC
 
-    #CFLAGS="-Df2cFortran -std=gnu99 -O"
-	CFLAFGS=" -g "
-    #FCFLAGS="-fno-alias -O -ip -align -DTREAT_OVERLAY -Duse_netCDF -Duse_comm_MPI1"
-    #FCFLAGS="-O -DTREAT_OVERLAY -Duse_netCDF -Duse_comm_MPI1"
+#CFLAGS="-Df2cFortran -std=gnu99 -O"
+  CFLAFGS=" -g "
+#FCFLAGS="-fno-alias -O -ip -align -DTREAT_OVERLAY -Duse_netCDF -Duse_comm_MPI1"
+#FCFLAGS="-O -DTREAT_OVERLAY -Duse_netCDF -Duse_comm_MPI1"
 #	FCFLAGS="--std=legacy -Duse_comm_MPI1 -O -DTREAT_OVERLAY -Duse_netCDF -g -fbacktrace -fcheck=all -finit-real=nan"
-	FCFLAGS="--std=legacy -Duse_comm_MPI1 -O -DTREAT_OVERLAY -Duse_netCDF -g -fbacktrace -finit-real=nan"
-	FFLAGS="$FCFLAGS"
-    #FCFLAGS_ECHAM="-O -fast-transcendentals -fp-model source"
-	FCFLAGS_ECHAM="--std=legacy -ffree-line-length-512 -g -Duse_comm_MPI1 -fbacktrace -finit-real=nan" 
-	FCFLAGS_MPIOM="--std=legacy -ffree-form  -x f77-cpp-input -g -fbacktrace -fimplicit-none -finit-real=nan -Duse_comm_MPI1"
+  FCFLAGS="--std=legacy -Duse_comm_MPI1 -O -DTREAT_OVERLAY -Duse_netCDF -g -fbacktrace -finit-real=nan"
+  FFLAGS="$FCFLAGS"
+#FCFLAGS_ECHAM="-O -fast-transcendentals -fp-model source"
+  FCFLAGS_ECHAM="--std=legacy -ffree-line-length-512 -g -Duse_comm_MPI1 -fbacktrace -finit-real=nan" 
+  FCFLAGS_MPIOM="--std=legacy -ffree-form  -x f77-cpp-input -g -fbacktrace -fimplicit-none -finit-real=nan -Duse_comm_MPI1"
 
-    #FCFLAGS_MPIOM="-g -O2 -ef -fp-model source -fpe0 -i4 -heap-arrays -convert big_endian -fpp -O"
-	LIBS_MPIOM="-Wl,-rpath,${NETCDFFROOT}/lib:${NETCDFROOT}/lib:${HDF5ROOT}/lib:${SZIPROOT}/lib:${MPIROOT}/include/lib:${CDIROOT}/include"
+#FCFLAGS_MPIOM="-g -O2 -ef -fp-model source -fpe0 -i4 -heap-arrays -convert big_endian -fpp -O"
+  LIBS_MPIOM="-Wl,-rpath,${NETCDFFROOT}/lib:${NETCDFROOT}/lib:${HDF5ROOT}/lib:${SZIPROOT}/lib:${MPIROOT}/include/lib:${CDIROOT}/include"
 
-	site_extras=(NETCDFF_VERSION="$NETCDFF_VERSION" NETCDFF_INCLUDE="$NETCDFF_INCLUDE" NETCDFF_LIB="$NETCDFF_LIB")
-	site_extras+=(NETCDF_VERSION="$NETCDF_VERSION" NETCDF_INCLUDE="$NETCDF_INCLUDE" NETCDF_LIB="$NETCDF_LIB")
-	;;
+  site_extras=(NETCDFF_VERSION="$NETCDFF_VERSION" NETCDFF_INCLUDE="$NETCDFF_INCLUDE" NETCDFF_LIB="$NETCDFF_LIB")
+  site_extras+=(NETCDF_VERSION="$NETCDF_VERSION" NETCDF_INCLUDE="$NETCDF_INCLUDE" NETCDF_LIB="$NETCDF_LIB")
+  ;;
 
-    esac # sisu-*|uan*)
+esac # sisu-*|uan*)
 #_______________________________________________________________________________
 #
 #                            End of Customization
@@ -372,182 +372,182 @@ typeset -a site_extras=
 #_______________________________________________________________________________
 #
 
-banner Creating Makefiles
+  banner Creating Makefiles
 
 #_______________________________________________________________________________
 #
-echo
-blueln "CONFIG_SHELL     $CONFIG_SHELL"
-echo
-blueln "CC               $CC" 
-blueln "CXX              $CXX" 
-blueln "CFLAGS           $CFLAGS"
-blueln "F77              $F77" 
-blueln "FFLAGS           $FFLAGS" 
-blueln "FC               $FC" 
-blueln "MPIFC            $MPIFC" 
-blueln "FCFLAGS          $FCFLAGS" 
-blueln "FCFLAGS_MPIOM    $FCFLAGS_MPIOM"
-blueln "FCFLAGS_ECHAM    $FCFLAGS_ECHAM"
-blueln "ARFLAGS          $ARFLAGS"
-blueln "WLFLAG           $WLFLAG"
-echo
-blueln "MPIROOT          $MPIROOT"
-blueln "MPI_INCLUDE      $MPI_INCLUDE"     
-blueln "MPI_LIB          $MPI_LIB"            
-echo
-blueln "NETCDFFROOT      $NETCDFFROOT"    
-blueln "NETCDFF_VERSION  $NETCDFF_VERSION" 
-blueln "NETCDFF_INCLUDE  $NETCDFF_INCLUDE"
-blueln "NETCDFF_LIB      $NETCDFF_LIB"
-echo
-blueln "NETCDFROOT       $NETCDFROOT"      
-blueln "NETCDF_VERSION   $NETCDF_VERSION" 
-blueln "NETCDF_INCLUDE   $NETCDF_INCLUDE"
-blueln "NETCDF_LIB       $NETCDF_LIB"
-echo
-blueln "HDF5ROOT         $HDF5ROOT"           
-blueln "HDF5_VERSION     $HDF5_VERSION" 
-blueln "HDF5_INCLUDE     $HDF5_INCLUDE"    
-blueln "HDF5_LIB         $HDF5_LIB"           
-echo
-blueln "SZIPROOT         $SZIPROOT"           
-blueln "ZLIBROOT         $ZLIBROOT"           
-echo
-blueln "SRCDIRS          $SRCDIRS"
-blueln "LAPACKROOT       $LAPACKROOT" 
-blueln "LAPACK_LIB       $LAPACK_LIB"
-blueln "SUPPORTROOT      $SUPPORTROOT"
-blueln "SUPPORT_LIB      $SUPPORT_LIB"
-echo
-blueln "OASIS3_MCT_ROOT  $OASIS3_MCT_ROOT"
-blueln "OASIS3MCT_FC_LIB $OASIS3MCT_FC_LIB"
-echo
+  echo
+  blueln "CONFIG_SHELL     $CONFIG_SHELL"
+  echo
+  blueln "CC               $CC" 
+  blueln "CXX              $CXX" 
+  blueln "CFLAGS           $CFLAGS"
+  blueln "F77              $F77" 
+  blueln "FFLAGS           $FFLAGS" 
+  blueln "FC               $FC" 
+  blueln "MPIFC            $MPIFC" 
+  blueln "FCFLAGS          $FCFLAGS" 
+  blueln "FCFLAGS_MPIOM    $FCFLAGS_MPIOM"
+  blueln "FCFLAGS_ECHAM    $FCFLAGS_ECHAM"
+  blueln "ARFLAGS          $ARFLAGS"
+  blueln "WLFLAG           $WLFLAG"
+  echo
+  blueln "MPIROOT          $MPIROOT"
+  blueln "MPI_INCLUDE      $MPI_INCLUDE"     
+  blueln "MPI_LIB          $MPI_LIB"            
+  echo
+  blueln "NETCDFFROOT      $NETCDFFROOT"    
+  blueln "NETCDFF_VERSION  $NETCDFF_VERSION" 
+  blueln "NETCDFF_INCLUDE  $NETCDFF_INCLUDE"
+  blueln "NETCDFF_LIB      $NETCDFF_LIB"
+  echo
+  blueln "NETCDFROOT       $NETCDFROOT"      
+  blueln "NETCDF_VERSION   $NETCDF_VERSION" 
+  blueln "NETCDF_INCLUDE   $NETCDF_INCLUDE"
+  blueln "NETCDF_LIB       $NETCDF_LIB"
+  echo
+  blueln "HDF5ROOT         $HDF5ROOT"           
+  blueln "HDF5_VERSION     $HDF5_VERSION" 
+  blueln "HDF5_INCLUDE     $HDF5_INCLUDE"    
+  blueln "HDF5_LIB         $HDF5_LIB"           
+  echo
+  blueln "SZIPROOT         $SZIPROOT"           
+  blueln "ZLIBROOT         $ZLIBROOT"           
+  echo
+  blueln "SRCDIRS          $SRCDIRS"
+  blueln "LAPACKROOT       $LAPACKROOT" 
+  blueln "LAPACK_LIB       $LAPACK_LIB"
+  blueln "SUPPORTROOT      $SUPPORTROOT"
+  blueln "SUPPORT_LIB      $SUPPORT_LIB"
+  echo
+  blueln "OASIS3_MCT_ROOT  $OASIS3_MCT_ROOT"
+  blueln "OASIS3MCT_FC_LIB $OASIS3MCT_FC_LIB"
+  echo
 
-create Makefile
-create run/SETUP.config
+  create Makefile
+  create run/SETUP.config
 
 #_______________________________________________________________________________
 #
 
-if $CONFIGURE_OASIS3_MCT
-then
-    mkdir -p $top_builddir/$OASIS3_MCT_SOURCE
-    cd $top_builddir/$OASIS3_MCT_SOURCE
+  if $CONFIGURE_OASIS3_MCT
+    then
+      mkdir -p $top_builddir/$OASIS3_MCT_SOURCE
+      cd $top_builddir/$OASIS3_MCT_SOURCE
 
-    banner Configuring OASIS3-MCT @ $(pwd)
+      banner Configuring OASIS3-MCT @ $(pwd)
 
-    $CONFIG_SHELL $top_srcdir/$OASIS3_MCT_SOURCE/configure \
-        --prefix=$OASIS3_MCT_ROOT \
-        CONFIG_SHELL=$CONFIG_SHELL \
-        CC="$CC" \
-	F77="$F77" \
-        FFLAGS="$FFLAGS" \
-        FC="$FC" \
-        MPIFC="$MPIFC" \
-        FCFLAGS="$FCFLAGS" \
-        ARFLAGS="$ARFLAGS" \
-        HDF5ROOT="$HDF5ROOT" \
-        "${site_extras[@]}" \
-        "${@:-}"
-        #NETCDFFROOT="$NETCDFFROOT" \
-        #NETCDFROOT="$NETCDFROOT" \
+      $CONFIG_SHELL $top_srcdir/$OASIS3_MCT_SOURCE/configure \
+      --prefix=$OASIS3_MCT_ROOT \
+      CONFIG_SHELL=$CONFIG_SHELL \
+      CC="$CC" \
+      F77="$F77" \
+      FFLAGS="$FFLAGS" \
+      FC="$FC" \
+      MPIFC="$MPIFC" \
+      FCFLAGS="$FCFLAGS" \
+      ARFLAGS="$ARFLAGS" \
+      HDF5ROOT="$HDF5ROOT" \
+      "${site_extras[@]}" \
+      "${@:-}"
+#NETCDFFROOT="$NETCDFFROOT" \
+#NETCDFROOT="$NETCDFROOT" \
 
-fi
+      fi
 
 #_______________________________________________________________________________
 #
 
 if $CONFIGURE_MPIOM
-then
+  then
     mkdir -p $top_builddir/$MPIOM_SOURCE
     cd $top_builddir/$MPIOM_SOURCE
 
     banner Configuring MPIOM @ $(pwd)
 
     FORT_REAL_LEN=${FORT_REAL_LEN:-""}
-    cross_compiling=${cross_compiling:-""}
+cross_compiling=${cross_compiling:-""}
 
-    $CONFIG_SHELL $top_srcdir/$MPIOM_SOURCE/configure \
-        --prefix=$configPrefix \
-        --disable-mh-file \
-        --with-coupler=oasis3-mct \
-        --enable-HAMOCC \
-        CONFIG_SHELL=$CONFIG_SHELL \
-        CC="$CC" \
-        CFLAGS="$CFLAGS" \
-        FC="$FC" \
-        MPIFC="$MPIFC" \
-        FCFLAGS="$FCFLAGS_MPIOM" \
-        ARFLAGS="$ARFLAGS" \
-        MPIROOT="$MPIROOT" \
-        CDO="$CDO" \
-	    ZLIBROOT="$ZLIBROOT" \
-        SZIPROOT="$SZIPROOT" \
-        HDF5ROOT="$HDF5ROOT" \
-        NETCDFROOT="$NETCDFROOT" \
-        LIBS="$LIBS_MPIOM" \
-        OASIS3MCT_FC_LIB="$OASIS3MCT_FC_LIB" \
-        OASIS3MCTROOT="$OASIS3_MCT_ROOT" \
-        QUEUE_SUBMIT="" \
-        FORT_REAL_LEN="$FORT_REAL_LEN" \
-        cross_compiling="$cross_compiling" \
-        "${site_extras[@]}" \
-        "${@:-}"
-fi
-
-#_______________________________________________________________________________
-#
-
-if $CONFIGURE_ECHAM6
-then
-    mkdir -p $top_builddir/$ECHAM6_SOURCE
-    cd $top_builddir/$ECHAM6_SOURCE
-
-    banner Configuring ECHAM @ $(pwd)
-
-    # Note that the configure of ECHAM does not work with mpif90
-    # mpi libraries have to be provided in MPI_LIB. The mpi include
-    # directory is deduced from MPIROOT.
-	#--enable-cdi-pio
-    $CONFIG_SHELL $top_srcdir/$ECHAM6_SOURCE/configure \
-        --prefix=$configPrefix \
-        --disable-mh-file \
-        --with-coupler=oasis3-mct \
-        --disable-shared \
-        CONFIG_SHELL=$CONFIG_SHELL \
-        CC="$CC" \
-        CXX="$CXX" \
-        CFLAGS="$CFLAGS" \
-        FFLAGS="$FFLAGS" \
-        FC="$FC" \
-        F77="$F77" \
-        FCFLAGS="$FCFLAGS_ECHAM" \
-        ARFLAGS="$ARFLAGS" \
-        WLFLAG="$WLFLAG" \
-        MPIROOT="$MPIROOT" \
-        NETCDFROOT="$NETCDFROOT" \
-        NETCDFFROOT="$NETCDFFROOT" \
-        HDF5ROOT="$HDF5ROOT" \
-        SZIPROOT="$SZIPROOT" \
-        YAXTROOT="$YAXTROOT" \
-        CDIROOT="$CDIROOT" \
-        OASIS3MCTROOT="$OASIS3_MCT_ROOT" \
-        MPI_LIB="$MPI_LIB" \
-        SRCDIRS="$SRCDIRS" \
-        LAPACKROOT="$LAPACKROOT" \
-        LAPACK_LIB="$LAPACK_LIB" \
-        SUPPORTROOT="$SUPPORTROOT" \
-        SUPPORT_LIB="$SUPPORT_LIB" \
-        "${site_extras[@]}" \
-        ${DEFINES} \
-        "${@:-}"
-fi
+$CONFIG_SHELL $top_srcdir/$MPIOM_SOURCE/configure \
+  --prefix=$configPrefix \
+  --disable-mh-file \
+  --with-coupler=oasis3-mct \
+  --enable-HAMOCC \
+  CONFIG_SHELL=$CONFIG_SHELL \
+  CC="$CC" \
+  CFLAGS="$CFLAGS" \
+  FC="$FC" \
+  MPIFC="$MPIFC" \
+  FCFLAGS="$FCFLAGS_MPIOM" \
+  ARFLAGS="$ARFLAGS" \
+  MPIROOT="$MPIROOT" \
+  CDO="$CDO" \
+  ZLIBROOT="$ZLIBROOT" \
+  SZIPROOT="$SZIPROOT" \
+  HDF5ROOT="$HDF5ROOT" \
+  NETCDFROOT="$NETCDFROOT" \
+  LIBS="$LIBS_MPIOM" \
+  OASIS3MCT_FC_LIB="$OASIS3MCT_FC_LIB" \
+  OASIS3MCTROOT="$OASIS3_MCT_ROOT" \
+  QUEUE_SUBMIT="" \
+  FORT_REAL_LEN="$FORT_REAL_LEN" \
+  cross_compiling="$cross_compiling" \
+  "${site_extras[@]}" \
+  "${@:-}"
+  fi
 
 #_______________________________________________________________________________
 #
 
-banner All components configured
+  if $CONFIGURE_ECHAM6
+    then
+      mkdir -p $top_builddir/$ECHAM6_SOURCE
+      cd $top_builddir/$ECHAM6_SOURCE
+
+      banner Configuring ECHAM @ $(pwd)
+
+# Note that the configure of ECHAM does not work with mpif90
+# mpi libraries have to be provided in MPI_LIB. The mpi include
+# directory is deduced from MPIROOT.
+#--enable-cdi-pio
+      $CONFIG_SHELL $top_srcdir/$ECHAM6_SOURCE/configure \
+      --prefix=$configPrefix \
+      --disable-mh-file \
+      --with-coupler=oasis3-mct \
+      --disable-shared \
+      CONFIG_SHELL=$CONFIG_SHELL \
+      CC="$CC" \
+      CXX="$CXX" \
+      CFLAGS="$CFLAGS" \
+      FFLAGS="$FFLAGS" \
+      FC="$FC" \
+      F77="$F77" \
+      FCFLAGS="$FCFLAGS_ECHAM" \
+      ARFLAGS="$ARFLAGS" \
+      WLFLAG="$WLFLAG" \
+      MPIROOT="$MPIROOT" \
+      NETCDFROOT="$NETCDFROOT" \
+      NETCDFFROOT="$NETCDFFROOT" \
+      HDF5ROOT="$HDF5ROOT" \
+      SZIPROOT="$SZIPROOT" \
+      YAXTROOT="$YAXTROOT" \
+      CDIROOT="$CDIROOT" \
+      OASIS3MCTROOT="$OASIS3_MCT_ROOT" \
+      MPI_LIB="$MPI_LIB" \
+      SRCDIRS="$SRCDIRS" \
+      LAPACKROOT="$LAPACKROOT" \
+      LAPACK_LIB="$LAPACK_LIB" \
+      SUPPORTROOT="$SUPPORTROOT" \
+      SUPPORT_LIB="$SUPPORT_LIB" \
+      "${site_extras[@]}" \
+      ${DEFINES} \
+      "${@:-}"
+      fi
+
+#_______________________________________________________________________________
+#
+
+      banner All components configured
 
 #_______________________________________________________________________________
 #
