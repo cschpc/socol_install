@@ -2,6 +2,7 @@
 
 ## Instructions
 
+0. Clone these files: `git clone https://github.com/cschpc/socol_install` and go to the directory `socol_install` afterwards.
 1. Edit `settings.sh` so that `GERACLIS_ROOT` points to correct place
 2. Run `./get_libs.sh`. This will download CDI, CDO and YAXT under `downloads`
 3. Run `./install_libs.sh`. This will install CDI, CDO and YAXT under `GERACLIS_ROOT`
