@@ -818,7 +818,8 @@ case $configHost-$configSystem in
 	FCFLAGS_MPIOM="--std=legacy -ffree-form  -x f77-cpp-input -g -fbacktrace -fimplicit-none -finit-real=nan -Duse_comm_MPI1"
 
     #FCFLAGS_MPIOM="-g -O2 -ef -fp-model source -fpe0 -i4 -heap-arrays -convert big_endian -fpp -O"
-	LIBS_MPIOM="-Wl,-rpath,${NETCDFFROOT}/lib:${NETCDFROOT}/lib:${HDF5ROOT}/lib:${SZIPROOT}/lib:${MPIROOT}/include/lib:${CDIROOT}/include"
+	# LIBS_MPIOM="-Wl,-rpath,${NETCDFFROOT}/lib:${NETCDFROOT}/lib:${HDF5ROOT}/lib:${SZIPROOT}/lib:${MPIROOT}/include/lib:${CDIROOT}/include"
+	LIBS_MPIOM="-Wl,-rpath,${NETCDFFROOT}/lib:${NETCDFROOT}/lib:${HDF5ROOT}/lib:${SZIPROOT}/lib:${CDIROOT}/include"
 
 	site_extras=(NETCDFF_VERSION="$NETCDFF_VERSION" NETCDFF_INCLUDE="$NETCDFF_INCLUDE" NETCDFF_LIB="$NETCDFF_LIB")
 	site_extras+=(NETCDF_VERSION="$NETCDF_VERSION" NETCDF_INCLUDE="$NETCDF_INCLUDE" NETCDF_LIB="$NETCDF_LIB")
