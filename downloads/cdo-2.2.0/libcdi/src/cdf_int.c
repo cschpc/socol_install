@@ -722,8 +722,9 @@ void
 cdf_get_att_int64(int ncid, int varid, const char *name, int64_t *ip)
 {
 #ifdef HAVE_NETCDF4
+  int status;
   if(sizeof(long long) == sizeof(int64_t)) {
-    int status = nc_get_att_longlong(ncid, varid, name, ip);
+    status = nc_get_att_longlong(ncid, varid, name, (long long*) ip);
   } else Error("cdf_get_att_int64: sizes of long long and int64_t differ");
 
 
