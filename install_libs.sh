@@ -13,7 +13,7 @@ popd
 
 pushd downloads/cdo-2.2.0
 
-CXX=CC FC=ftn CC=cc ./configure --prefix=$GERACLIS_ROOT/usr
+CXX=CC FC=ftn CC=cc ./configure --prefix=$GERACLIS_ROOT/usr --with-netcdf=$NETCDF_DIR
 
 make -j 12 install
 
