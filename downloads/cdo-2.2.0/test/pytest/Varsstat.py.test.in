@@ -1,0 +1,19 @@
+#! @PYTHON@
+#
+from cdoTest import *
+#
+OPERATORS=["varsmin","varsmax","varsrange","varssum","varsavg","varsmean","varsstd","varsstd1","varsvar","varsvar1"]
+
+IFILE=f'{DATAPATH}/vars_data.grb'
+FORMAT="-f srv -b 32"
+
+test_module = TestModule()
+for OPER in OPERATORS:
+    OFILE=f'{OPER}_res'
+    RFILE=f'{DATAPATH}{OPER}_ref'
+    t=TAPTest(OPER)
+    t.add(f'{CDO} {FORMAT} {OPER} {IFILE} {OFILE}')
+    t.add(f'{CDO} diff {OFILE} {RFILE}')
+    t.clean(OFILE)
+    test_module.add(t)
+test_module.run()

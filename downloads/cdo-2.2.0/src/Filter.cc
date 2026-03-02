@@ -1,0 +1,435 @@
+/*
+  This file is part of CDO. CDO is a collection of Operators to manipulate and analyse Climate model Data.
+
+  Author: Cedrick Ansorge
+          Uwe Schulzweida
+
+*/
+
+/*
+   This module contains the following operators:
+
+      Filter    highpass
+      Filter    lowpass
+      Filter    bandpass
+*/
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_LIBFFTW3
+#include <fftw3.h>
+#endif
+
+#include "cdi.h"
+#include "julian_date.h"
+#include "process_int.h"
+#include "cdo_vlist.h"
+#include "param_conversion.h"
+#include "cdo_fft.h"
+#include "cdo_options.h"
+#include "datetime.h"
+#include "cimdOmp.h"
+#include "field_functions.h"
+
+static void
+create_fmasc(int nts, double fdata, double fmin, double fmax, std::vector<int> &fmasc)
+{
+  auto dimin = nts * fmin / fdata;
+  auto dimax = nts * fmax / fdata;
+
+  auto imin = (dimin < 0) ? 0 : (int) std::floor(dimin);
+  auto imax = (std::ceil(dimax) > nts / 2) ? nts / 2 : (int) std::ceil(dimax);
+
+  if (imin < 0 || imin >= nts) cdo_abort("Parameter fmin=%g: timestep %d out of bounds (1-%d)!", fmin, imin + 1, nts);
+  if (imax < 0 || imax >= nts) cdo_abort("Parameter fmax=%g: timestep %d out of bounds (1-%d)!", fmax, imax + 1, nts);
+
+  fmasc[imin] = 1;
+  for (int i = imin + 1; i <= imax; ++i) fmasc[i] = fmasc[nts - i] = 1;
+}
+
+#ifdef HAVE_LIBFFTW3
+static void
+filter_fftw(int nts, const std::vector<int> &fmasc, fftw_complex *fft_out, fftw_plan *p_T2S, fftw_plan *p_S2T)
+{
+  fftw_execute(*p_T2S);
+
+  for (int i = 0; i < nts; ++i)
+    if (!fmasc[i])
+      {
+        fft_out[i][0] = 0.0;
+        fft_out[i][1] = 0.0;
+      }
+
+  fftw_execute(*p_S2T);
+
+  return;
+}
+#endif
+
+static void
+filter_intrinsic(int nts, const std::vector<int> &fmasc, double *real, double *imag)
+{
+  auto isPower2 = ((nts & (nts - 1)) == 0);
+
+  Varray<double> work_r, work_i;
+
+  if (!isPower2) work_r.resize(nts);
+  if (!isPower2) work_i.resize(nts);
+
+  if (isPower2)
+    cdo::fft(real, imag, nts, 1);
+  else
+    cdo::ft_r(real, imag, nts, 1, work_r.data(), work_i.data());
+
+  for (int i = 0; i < nts; ++i)
+    if (!fmasc[i]) real[i] = imag[i] = 0;
+
+  if (isPower2)
+    cdo::fft(real, imag, nts, -1);
+  else
+    cdo::ft_r(real, imag, nts, -1, work_r.data(), work_i.data());
+
+  return;
+}
+
+struct FilterMemory
+{
+  Varray<double> real;
+  Varray<double> imag;
+#ifdef HAVE_LIBFFTW3
+  fftw_complex *in_fft;
+  fftw_complex *out_fft;
+  fftw_plan p_T2S;
+  fftw_plan p_S2T;
+#endif
+};
+
+class ModuleFilter
+{
+  enum
+  {
+    BANDPASS,
+    HIGHPASS,
+    LOWPASS
+  };
+
+  std::vector<std::string> tunits;
+  std::vector<int> iunits;
+  int year0, month0, day0;
+  double fdata = 0.0;
+  TimeIncrement timeIncr0 = { 0, TimeUnits::SECONDS };
+  DateTimeList dtlist;
+
+  CdoStreamID streamID1;
+  CdoStreamID streamID2;
+
+  int taxisID1;
+  int taxisID2;
+
+  int vlistID1;
+  int vlistID2;
+
+  FieldVector3D vars;
+
+  VarList varList;
+
+  bool useFFTW = false;
+  int operfunc;
+  int calendar;
+
+  int nvars;
+
+public:
+  void
+  init(void *process)
+  {
+    tunits = { "second", "minute", "hour", "day", "month", "year" };
+    iunits = { 31536000, 525600, 8760, 365, 12, 1 };
+
+    cdo_initialize(process);
+
+    cdo_operator_add("bandpass", BANDPASS, 0, nullptr);
+    cdo_operator_add("highpass", HIGHPASS, 0, nullptr);
+    cdo_operator_add("lowpass", LOWPASS, 0, nullptr);
+
+    auto operatorID = cdo_operator_id();
+    operfunc = cdo_operator_f1(operatorID);
+
+    if (Options::Use_FFTW)
+      {
+#ifdef HAVE_LIBFFTW3
+        if (Options::cdoVerbose) cdo_print("Using fftw3 lib");
+        useFFTW = true;
+#else
+        if (Options::cdoVerbose) cdo_print("LIBFFTW3 support not compiled in!");
+#endif
+      }
+
+    if (Options::cdoVerbose && !useFFTW) cdo_print("Using intrinsic FFT function!");
+
+    streamID1 = cdo_open_read(0);
+
+    vlistID1 = cdo_stream_inq_vlist(streamID1);
+    vlistID2 = vlistDuplicate(vlistID1);
+
+    taxisID1 = vlistInqTaxis(vlistID1);
+    taxisID2 = taxisDuplicate(taxisID1);
+    vlistDefTaxis(vlistID2, taxisID2);
+
+    calendar = taxisInqCalendar(taxisID1);
+
+    varListInit(varList, vlistID1);
+
+    nvars = vlistNvars(vlistID1);
+  }
+  void
+  run()
+  {
+    int tsID = 0;
+    while (true)
+      {
+        auto nrecs = cdo_stream_inq_timestep(streamID1, tsID);
+        if (nrecs == 0) break;
+
+        constexpr size_t NALLOC_INC = 1024;
+        if ((size_t) tsID >= vars.size()) vars.resize(vars.size() + NALLOC_INC);
+
+        dtlist.taxis_inq_timestep(taxisID1, tsID);
+
+        fields_from_vlist(vlistID1, vars[tsID]);
+
+        for (int recID = 0; recID < nrecs; ++recID)
+          {
+            int varID, levelID;
+            cdo_inq_record(streamID1, &varID, &levelID);
+            auto &field = vars[tsID][varID][levelID];
+            field.init(varList[varID]);
+            cdo_read_record(streamID1, field);
+            if (field.nmiss) cdo_abort("Missing value support for operators in module Filter not added yet!");
+          }
+
+        // get and check time increment
+        if (tsID > 0)
+          {
+            auto vDateTime0 = dtlist.get_vDateTime(tsID - 1);
+            auto vDateTime = dtlist.get_vDateTime(tsID);
+
+            cdiDate_decode(vDateTime0.date, &year0, &month0, &day0);
+            int year, month, day;
+            cdiDate_decode(vDateTime.date, &year, &month, &day);
+
+            auto julianDate0 = julianDate_encode(calendar, vDateTime0);
+            auto julianDate = julianDate_encode(calendar, vDateTime);
+            auto jdelta = julianDate_to_seconds(julianDate_sub(julianDate, julianDate0));
+
+            auto timeIncr = get_time_increment(jdelta, vDateTime0.date, vDateTime.date);
+
+            if (tsID == 1)
+              {
+                timeIncr0 = timeIncr;
+                if (timeIncr.period == 0) cdo_abort("Time step must be different from zero!");
+                if (Options::cdoVerbose) cdo_print("Time step %lld %s", timeIncr.period, tunits[(int) timeIncr.units]);
+                fdata = 1.0 * iunits[(int) timeIncr.units] / timeIncr.period;
+              }
+
+            if (calendar != CALENDAR_360DAYS && calendar != CALENDAR_365DAYS && calendar != CALENDAR_366DAYS
+                && timeIncr0.units < TimeUnits::MONTHS && month == 2 && day == 29
+                && (day0 != day || month0 != month || year0 != year))
+              {
+                cdo_warning("Filtering of multi-year times series doesn't works properly with a standard calendar.");
+                cdo_warning("  Please delete the day %i-02-29 (cdo del29feb)", year);
+              }
+
+            if (timeIncr.period != timeIncr0.period || timeIncr.units != timeIncr0.units)
+              cdo_warning("Time increment in step %d (%lld%s) differs from step 1 (%lld%s)!", tsID + 1, timeIncr.period,
+                          tunits[(int) timeIncr.units], timeIncr0.period, tunits[(int) timeIncr0.units]);
+          }
+
+        tsID++;
+      }
+
+    auto nts = tsID;
+    if (nts <= 1) cdo_abort("Number of time steps <= 1!");
+
+    std::vector<FilterMemory> fourierMemory(Threading::ompNumThreads);
+
+    if (useFFTW)
+      {
+#ifdef HAVE_LIBFFTW3
+        for (auto &fm : fourierMemory)
+          {
+            fm.in_fft = fftw_alloc_complex(nts);
+            fm.out_fft = fftw_alloc_complex(nts);
+            fm.p_T2S = fftw_plan_dft_1d(nts, fm.in_fft, fm.out_fft, 1, FFTW_ESTIMATE);
+            fm.p_S2T = fftw_plan_dft_1d(nts, fm.out_fft, fm.in_fft, -1, FFTW_ESTIMATE);
+          }
+#endif
+      }
+    else
+      {
+        for (auto &fm : fourierMemory)
+          {
+            fm.real.resize(nts);
+            fm.imag.resize(nts);
+          }
+      }
+
+    double fmin = 0.0, fmax = 0.0;
+    switch (operfunc)
+      {
+      case BANDPASS:
+        {
+          operator_input_arg("lower and upper bound of frequency band");
+          operator_check_argc(2);
+          fmin = parameter_to_double(cdo_operator_argv(0));
+          fmax = parameter_to_double(cdo_operator_argv(1));
+          break;
+        }
+      case HIGHPASS:
+        {
+          operator_input_arg("lower bound of frequency pass");
+          operator_check_argc(1);
+          fmin = parameter_to_double(cdo_operator_argv(0));
+          fmax = fdata;
+          break;
+        }
+      case LOWPASS:
+        {
+          operator_input_arg("upper bound of frequency pass");
+          operator_check_argc(1);
+          fmin = 0.0;
+          fmax = parameter_to_double(cdo_operator_argv(0));
+          break;
+        }
+      }
+
+    if (Options::cdoVerbose) cdo_print("fmin=%g  fmax=%g", fmin, fmax);
+
+    std::vector<int> fmasc(nts, 0);
+    create_fmasc(nts, fdata, fmin, fmax, fmasc);
+
+    for (int varID = 0; varID < nvars; ++varID)
+      {
+        auto fieldMemType = varList[varID].memType;
+        auto gridsize = varList[varID].gridsize;
+        for (int levelID = 0; levelID < varList[varID].nlevels; ++levelID)
+          {
+            if (useFFTW)
+              {
+#ifdef HAVE_LIBFFTW3
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) schedule(static)
+#endif
+                for (size_t i = 0; i < gridsize; ++i)
+                  {
+                    auto ompthID = cdo_omp_get_thread_num();
+                    auto &fm = fourierMemory[ompthID];
+
+                    if (fieldMemType == MemType::Float)
+                      for (int t = 0; t < nts; ++t)
+                        {
+                          fm.in_fft[t][0] = vars[t][varID][levelID].vec_f[i];
+                          fm.in_fft[t][1] = 0.0;
+                        }
+                    else
+                      for (int t = 0; t < nts; ++t)
+                        {
+                          fm.in_fft[t][0] = vars[t][varID][levelID].vec_d[i];
+                          fm.in_fft[t][1] = 0.0;
+                        }
+
+                    filter_fftw(nts, fmasc, fm.out_fft, &fm.p_T2S, &fm.p_S2T);
+
+                    if (fieldMemType == MemType::Float)
+                      for (int t = 0; t < nts; ++t) vars[t][varID][levelID].vec_f[i] = fm.in_fft[t][0] / nts;
+                    else
+                      for (int t = 0; t < nts; ++t) vars[t][varID][levelID].vec_d[i] = fm.in_fft[t][0] / nts;
+                  }
+#endif
+              }
+            else
+              {
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) schedule(static)
+#endif
+                for (size_t i = 0; i < gridsize; ++i)
+                  {
+                    auto ompthID = cdo_omp_get_thread_num();
+                    auto &fm = fourierMemory[ompthID];
+
+                    if (fieldMemType == MemType::Float)
+                      for (int t = 0; t < nts; ++t) fm.real[t] = vars[t][varID][levelID].vec_f[i];
+                    else
+                      for (int t = 0; t < nts; ++t) fm.real[t] = vars[t][varID][levelID].vec_d[i];
+
+                    varray_fill(fm.imag, 0.0);
+
+                    filter_intrinsic(nts, fmasc, fm.real.data(), fm.imag.data());
+
+                    if (fieldMemType == MemType::Float)
+                      for (int t = 0; t < nts; ++t) vars[t][varID][levelID].vec_f[i] = fm.real[t];
+                    else
+                      for (int t = 0; t < nts; ++t) vars[t][varID][levelID].vec_d[i] = fm.real[t];
+                  }
+              }
+          }
+      }
+
+#ifdef HAVE_LIBFFTW3
+    if (useFFTW)
+      {
+        for (auto &fm : fourierMemory)
+          {
+            fftw_free(fm.in_fft);
+            fftw_free(fm.out_fft);
+            fftw_destroy_plan(fm.p_T2S);
+            fftw_destroy_plan(fm.p_S2T);
+          }
+        fftw_cleanup();
+      }
+#endif
+
+    streamID2 = cdo_open_write(1);
+    cdo_def_vlist(streamID2, vlistID2);
+
+    for (tsID = 0; tsID < nts; ++tsID)
+      {
+        dtlist.taxis_def_timestep(taxisID2, tsID);
+        cdo_def_timestep(streamID2, tsID);
+
+        for (int varID = 0; varID < nvars; ++varID)
+          {
+            for (int levelID = 0; levelID < varList[varID].nlevels; ++levelID)
+              {
+                auto &field = vars[tsID][varID][levelID];
+                if (field.hasData())
+                  {
+                    cdo_def_record(streamID2, varID, levelID);
+                    cdo_write_record(streamID2, field);
+                  }
+              }
+          }
+      }
+  }
+
+  void
+  close()
+  {
+    cdo_stream_close(streamID2);
+    cdo_stream_close(streamID1);
+
+    cdo_finish();
+  }
+};
+
+void *
+Filter(void *process)
+{
+  ModuleFilter filter;
+  filter.init(process);
+  filter.run();
+  filter.close();
+  return nullptr;
+}
