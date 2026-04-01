@@ -6,13 +6,14 @@ source artefacts/modules_gnu
 
 pushd downloads/libcdi-cdi-1.7.2
 
+make clean
 CXX=CC FC=ftn CC=cc ./configure --prefix=$GERACLIS_ROOT/usr --with-netcdf=$NETCDF_DIR
 make -j 12 install
 
 popd
 
 pushd downloads/cdo-2.2.0
-
+git clean -fd .
 CXX=CC FC=ftn CC=cc ./configure --prefix=$GERACLIS_ROOT/usr --with-netcdf=$NETCDF_DIR
 
 make -j 12 install

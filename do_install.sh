@@ -62,5 +62,5 @@ pushd $SOCOL_SRC && GERACLIS_ROOT=$GERACLIS_ROOT ./configure_socol_lumi --oasis 
 cd $SOCOL_SRC/src/oasis3mct && make -j2 install
 
 # Make SOCOL
-cd $SOCOL_SRC && make -j12 install
+cd $SOCOL_SRC && make install
 popd
